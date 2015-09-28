@@ -1,4 +1,4 @@
-import os, sys, subprocess, Tkinter
+import os, sys, subprocess, Tkinter, random
 
 def play(filename):
     """This should work on both Windows and Mac OS"""
@@ -13,8 +13,58 @@ def get_filename(s):
 Windows"""
     return(os.path.expanduser(s))
 
+counter = 0
 
-l = "~/Desktop/Non School Code/Python Stuff/Name.mp4"
+def word_changer():
+    global counter
+    if (counter < numVids):
+        counter += 1
+        name.set(mappedList[counter][0])
+        #word font size - configure later
+        if (len(mappedList[counter][0]) >= 9):
+            word.config(font = "Verdana 75 bold", height = 8, width = 27)
+        else:
+            word.config(font = "Verdana 200 bold", height = 3, width = 10)
+    else:
+        word.config(font = "Verdana 100 bold", height = 6, width = 20)
+        name.set("End of videos")
+
+def show_sign():
+    global counter
+    if (counter < numVids):
+        play(mappedList[counter][1].rstrip('\n'))
+    else:
+        word.config(font = "Verdana 100 bold", height = 6, width = 20)
+        name.set("End of videos")
+
+#wordList and videoList are currently single lists; eventually make
+#them lists of lists corresponding to units
+wordFile = open('C:\Users\Carrie\Documents\ASL Study App\Word List.txt', 'r+')
+wordList = []
+for line in wordFile:
+    if (not(line[0] == ":")):
+        wordList.append(line)
+numWords = len(wordList)
+
+videoFile = open('C:\Users\Carrie\Documents\ASL Study App\Video List.txt', 'r+')
+videoList = []
+for line in videoFile:
+    if (not(line[0] == ":")):
+        videoList.append(line)
+numVids = len(videoList)
+if (not(numVids == numWords)):
+    print "Warning: unequal numbers of videos and words"
+
+#List of tuples; eventually a list of lists of tuples for units
+#NOTE: This assumes the number of videos is less than or equal to the number of words
+mappedList = []
+for i in range(len(videoList)):
+    mappedList.append((wordList[i], videoList[i]))
+
+random.shuffle(mappedList)
+
+
+
 
 root = Tkinter.Tk()
 #Code to add all the widgets and stuff
@@ -30,37 +80,28 @@ word = Tkinter.Label(root, textvariable = name, height = 3, width = 10,
                      font = "Verdana 200 bold", fg = "orange",
                      bg = "black")
 word.pack()
-name.set("Name")
+name.set(mappedList[counter][0])
 
 #Macs don't allow you to change the colors of a button, but Windows does.
 show = Tkinter.Button(root, text = "Show sign",
-                      command = lambda: play(get_filename(l)),
+                      command = show_sign,
                       font = "Verdana 50", relief = "raised",
                       fg = "green", bg = "blue")
 show.pack()
 show.place(relheight = .2, relwidth = .5, relx = 0, rely =.8)
-# I've no idea why the button has that annoying rectangle thing. Maybe
-#it doesn't on Windows??
 
-#Make your own class that extends button with a filepath that you can
-#change for the show button.
 change = Tkinter.Button(root, text = "Next",
-                        command = lambda: name.set("Changed!"),
+                        command = word_changer,
                         font = "Verdana 50", relief = "flat",
                         fg = "green", bg = "blue")
 change.pack()
 change.place(relheight = .2, relwidth = .5, relx = .5, rely = .8)
 
 #Call .destroy on a widget to get rid of it.
+#Call .pack_forget to remove it temporarily; then call .pack() to restore it
 
 
 root.mainloop()
-
-
-
-
-
-
 #Other Features:
 #1) Toggle video/word first during use (use radio buttons)
 #2) Have the ability to choose a subset of units to cover (checklist buttons)

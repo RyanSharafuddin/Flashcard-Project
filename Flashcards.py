@@ -17,12 +17,11 @@ def word_changer():
     global counter
     if (counter < num_studied - 1):
         counter += 1
-        name.set(mappedList[counter][0])
-        #word font size - configure later
-        if (len(mappedList[counter][0]) >= 9):
-            word.config(font = "Verdana 75 bold", height = 8, width = 27)
+        if (vidFirst):
+            name.set('')
+            play(mappedList[counter][1].rstrip('\n'))
         else:
-            word.config(font = "Verdana 200 bold", height = 3, width = 10)
+            set_name()
     else:
         counter = num_studied
         word.config(font = "Verdana 100 bold", height = 6, width = 20)
@@ -31,11 +30,14 @@ def word_changer():
 def show_sign():
     global counter
     if (counter <= num_studied - 1):
-        play(mappedList[counter][1].rstrip('\n'))
+        if (vidFirst):
+            set_name()
+        else:
+            play(mappedList[counter][1].rstrip('\n'))
 
-def initialize_name():
+def set_name():
     name.set(mappedList[counter][0])
-    if (len(mappedList[counter][0]) >= 9):
+    if (len(mappedList[counter][0]) >= 9): #Configure font here
         word.config(font = "Verdana 75 bold", height = 8, width = 27)
     else:
         word.config(font = "Verdana 200 bold", height = 3, width = 10)
@@ -52,7 +54,11 @@ def set_mappedList():
     random.shuffle(mappedList)
     num_studied = len(mappedList)
     counter = 0
-    initialize_name()
+    if (vidFirst):
+        play(mappedList[counter][1].rstrip('\n'))
+        name.set('')
+    else:
+        set_name()
     return
 
 def all_zeros(tracker):
@@ -83,9 +89,23 @@ def choose_units():
     popup.grab_set()
     popup.mainloop()
     popup.destroy()
+
+def tog():
+    global vidFirst
+    vidFirst = not(vidFirst)
+    if (vidFirst):
+        show.config(text = "Show word")
+        if (counter < num_studied):
+            play(mappedList[counter][1].rstrip('\n'))
+            name.set('')
+    else:
+        show.config(text = "Show sign")
+        if (counter < num_studied): set_name()
     
 counter = 0
+mappedList = []
 cTracker = [] #list of IntVars to keep track of checkboxes
+vidFirst = False
 
 #'C:\Users\Carrie\Documents\ASL Study App\Word List.txt'
 wordFile = open('file.txt', 'r+')
@@ -119,7 +139,6 @@ vids_per_unit = []
 for unit in videoList:
     vids_per_unit.append(len(unit))
 
-
 if(not(len(vids_per_unit) == len(words_per_unit))):
     print ("Warning: Unequal numbers of video and word units")
 else:
@@ -136,17 +155,7 @@ for unit in (videoList):
     for i in range(len(unit)):
         wholeList[unit_index].append((wordList[unit_index][i], videoList[unit_index][i]))
 
-mappedList = []
-
 root = Tkinter.Tk()
-#Code to add all the widgets and stuff
-
-#NOTE: height and width are in terms of letters, so it's dependent
-#on the font size (for text Labels)
-
-#NOTE: I've no idea what fonts and colors are available; look this up
-# if you wish. Colors can also be specified in RGB values using this:
-# tk_rgb = "#%02x%02x%02x" % (128, 192, 200)
 name = Tkinter.StringVar()
 word = Tkinter.Label(root, textvariable = name, height = 3, width = 10,
                      font = "Verdana 200 bold", fg = "orange",
@@ -157,33 +166,30 @@ for (num, unit) in enumerate(wholeList):
     cTracker[num].set(1)
 set_mappedList()
 
-#Macs don't allow you to change the colors of a button, but Windows does.
 show = Tkinter.Button(root, text = "Show sign",
                       command = show_sign,
                       font = "Verdana 50", relief = "raised",
                       fg = "green", bg = "blue")
 show.pack()
-show.place(relheight = .2, relwidth = .4, relx = 0, rely =.8)
+show.place(relheight = .2, relwidth = .35, relx = 0, rely =.8)
 
 change = Tkinter.Button(root, text = "Next",
                         command = word_changer,
                         font = "Verdana 50", relief = "flat",
                         fg = "green", bg = "blue")
 change.pack()
-change.place(relheight = .2, relwidth = .4, relx = .4, rely = .8)
+change.place(relheight = .2, relwidth = .35, relx = .35, rely = .8)
 
 set_units = Tkinter.Button(root, text = "Set units",
                            font = "Verdana 50", command = choose_units,
                            fg = "green", bg = "blue")
 set_units.pack()
-set_units.place(relheight = .2, relwidth = .2, relx = .8, rely = .8)
-
-#Call .destroy on a widget to get rid of it.
-#Call .pack_forget to remove it temporarily; then call .pack() to restore it
-
-
+set_units.place(relheight = .2, relwidth = .15, relx = .7, rely = .8)
+toggle = Tkinter.Checkbutton(root, text = "Video first",
+                             font = "Verdana 50", command = tog,
+                             fg = "green", bg = "blue")
+toggle.pack()
+toggle.place(relheight = .2, relwidth = .15, relx = .85, rely = .8)
 root.mainloop()
 #Other Features:
-#1) Toggle video/word first during use (use radio buttons)
-#2) Be able to use images as well as words on the label
-#3) Quiz on units
+#1) Be able to use images as well as words on the label
